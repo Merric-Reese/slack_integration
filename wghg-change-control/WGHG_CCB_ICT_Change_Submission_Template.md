@@ -10,6 +10,71 @@
 
 ---
 
+## Change Control Process – Where this Submission Fits
+
+![WGHG ICT Change Control Process – high-level overview](assets/wghg-change-control-process.png)
+
+*Confluence: upload `assets/wghg-change-control-process.png` to this page and insert it here. The full process is in the **ICT Change Control Process** document.*
+
+| Step | Stage | Who | This Submission | Companion File |
+|---|---|---|---|---|
+| 1 | Raise & Record | Change Requester | Sections 1, 3 | ITSM change record |
+| 2 | Assess & Plan | Change Owner, Change Manager | Plan on a Page; Sections 2, 4–13 | Run Sheet (Excel), including the Plan on a Page tab |
+| 3 | CCB Authorise | Change Control Board | Section 14 – CCB Decision | CCB agenda and minutes |
+| 4 | Schedule & Communicate | Change Manager | Sections 11–12 | Run Sheet – Comms Log tab |
+| 5 | Implement | Implementation Lead | Section 15 – Implementation Record | Run Sheet; Issues & Decisions Log |
+| 6 | Review (PIR) | Change Owner, reported to the CCB | Section 16 – PIR | — |
+| 7 | Close | Change Manager | Section 17 – Closure | ITSM change record |
+
+**CCB outcomes:** Deferred → return to Step 2. Rejected → close as Rejected. **Emergency changes** are authorised by an emergency CCB quorum and presented at the next CCB for retrospective review.
+
+---
+
+## Plan on a Page (A3)
+
+*Guidance: This one-page summary of the change is presented to the CCB. In Word it prints as a single A3 landscape page. The run sheet workbook has the same layout on its **Plan on a Page** tab, where the timeline fills in automatically from the run sheet.*
+
+### Change at a Glance
+
+| Field | Value | Field | Value |
+|---|---|---|---|
+| Change ID | [CHG0001234] | CCB Meeting Date | [DD/MM/YYYY] |
+| Change Title | [Enter] | Decision Requested | [Approve for implementation] |
+| Change Type | [Normal / Emergency] | Overall Risk Rating | [Low / Medium / High / Extreme] |
+| Approved Window | [DD/MM/YYYY HH:MM – HH:MM] | Expected Outage | [Enter duration and services] |
+
+### What, Why and Success
+
+| What is changing | Why it is needed | Success criteria and benefits |
+|---|---|---|
+| [Enter, in plain language] | [Enter driver and the consequence of not proceeding] | [Enter measurable success criteria] |
+
+### Timeline
+
+| Phase | Key Activities | Owner | Planned Start | Planned End |
+|---|---|---|---|---|
+| 1. Pre-Implementation | [Backups, notifications, pre-checks] | [Name] | [HH:MM] | [HH:MM] |
+| 2. Go / No-Go | Go / No-Go decision | [Change Manager] | [HH:MM] | [HH:MM] |
+| 3. Implementation | [Enter key activities] | [Name] | [HH:MM] | [HH:MM] |
+| 4. Verification | [Technical and clinical verification] | [Name] | [HH:MM] | [HH:MM] |
+| ◆ Backout decision point | Latest time to start a backout | [Change Manager] | [HH:MM] | — |
+| 5. Post-Implementation | [Notify completion, monitor, update records] | [Name] | [HH:MM] | [HH:MM] |
+| 6. Backout (only if invoked) | [Enter backout summary] | [Name] | [HH:MM] | [HH:MM] |
+
+### Impact, Risk and Backout
+
+| Impacted services, sites and users | Top risks and mitigations | Backout plan |
+|---|---|---|
+| [Services / CIs; sites and departments; number of users; clinical impact and downtime procedures] | [R1 – rating – mitigation; R2 – rating – mitigation; R3 – rating – mitigation] | [Trigger; decision point; decision maker; duration; tested ☐ Yes ☐ No] |
+
+### Communications, Readiness and Contacts
+
+| Communications | Readiness checklist | Key contacts |
+|---|---|---|
+| [Service Desk – when; clinical areas / NUMs – when; After-Hours Coordinator – when; vendors – when; all users – start and completion] | ☐ Pre-CCB endorsements ☐ Testing complete ☐ Backup / snapshot plan confirmed ☐ Run Sheet finalised ☐ Downtime procedures confirmed ☐ Vendor support confirmed ☐ Service Desk briefed | [Change Manager – name, mobile; Implementation Lead – name, mobile; Business / Clinical Owner – name, mobile; After-Hours Coordinator – phone; Vendor – phone] |
+
+---
+
 ## 1. CCB Submission Details
 
 | Field | Value |
