@@ -1,12 +1,12 @@
 ![West Gippsland Healthcare Group](https://wghg.com.au/wp-content/uploads/2018/11/Untitled-design-30.png)
 
-# Change Control Board (CCB) – ICT Change Submission
+# Change Control Board (CCB) – ICT Change Submission: High / Critical Risk
 
 **West Gippsland Healthcare Group (WGHG) – Information & Communication Technology**
 
-**Single change submission for CCB review and decision – aligned to ITIL 4 Change Enablement**
+**Full single change submission for High and Critical risk changes – aligned to ITIL 4 Change Enablement**
 
-> **How to use this template:** Complete this template for **one** ICT change only. Submit it to the CCB Secretariat by the agenda cut-off for the CCB meeting. Replace every `[Enter …]` placeholder and mark selections by replacing ☐ with ☒. Delete guidance notes (lines starting with *Guidance:*) before submission. The detailed, timed steps for this change belong in the companion **ICT Change Run Sheet** (Excel). Attach it to this submission. Section 14 is completed by the CCB at the meeting.
+> **How to use this template:** Use this template for **one** High or Critical risk ICT change: any change with high impact. It is Critical if probability is also high. Low and Medium risk changes use the shorter **Minor** and **Medium** templates. Submit it to the CCB Secretariat by the agenda cut-off for the CCB meeting. Replace every `[Enter …]` placeholder and mark selections by replacing ☐ with ☒. Delete guidance notes (lines starting with *Guidance:*) before submission. The detailed, timed steps for this change belong in the companion **ICT Change Run Sheet** (Excel). Attach it to this submission. Section 14 is completed by the CCB at the meeting.
 
 ---
 
@@ -30,6 +30,63 @@
 
 ---
 
+## Which Change Process Should I Follow?
+
+*Use this flowchart and the impact and probability criteria to decide whether the work is a change, which type of change it is, its risk level, and which CCB submission template to use.*
+
+| Impact | Probability | Risk Level | Template to Use | Attachments |
+|---|---|---|---|---|
+| Low | Low | Low | **Minor** | None – implementation and backout steps are written in the form |
+| Low | High | Medium | **Medium** | Run Sheet (Excel) and A3 Plan on a Page |
+| High | Low | High | **High / Critical** | Run Sheet (Excel) and A3 Plan on a Page; PIR always required |
+| High | High | Critical | **High / Critical** | Run Sheet (Excel) and A3 Plan on a Page; PIR always required; [Enter any extra endorsement WGHG requires, e.g. Executive sponsor] |
+
+*Risk levels follow the ITIL approach of assessing a change's impact and the probability of the risk occurring. The High / Low criteria below and the mapping to Low / Medium / High / Critical are a WGHG starting point, to be refined.*
+
+```mermaid
+flowchart TD
+    A(["I need to make a change to an ICT service"]) --> B{"Service request?<br/>(e.g. password reset)"}
+    B -- Yes --> B1["Not a change<br/>Log a Service Request in the ITSM tool"]
+    B -- No --> C{"In the Standard<br/>Change Catalogue?"}
+    C -- Yes --> C1["Standard change<br/>Follow its pre-authorised model<br/>No CCB submission"]
+    C -- No --> D{"Urgent fix for a<br/>major incident or<br/>security risk?"}
+    D -- Yes --> D1["Emergency change<br/>Emergency CCB quorum authorises<br/>Still assess risk and use the<br/>template for its risk level"]
+    D -- No --> E{"Any high-impact<br/>criterion?<br/>(I1–I7)"}
+    D1 --> E
+    E -- No --> F{"Any high-probability<br/>criterion?<br/>(P1–P7)"}
+    E -- Yes --> G{"Any high-probability<br/>criterion?<br/>(P1–P7)"}
+    F -- No --> L["LOW risk<br/>Minor template<br/>No attachments"]
+    F -- Yes --> M["MEDIUM risk<br/>Medium template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    G -- No --> H["HIGH risk<br/>High / Critical template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    G -- Yes --> X["CRITICAL risk<br/>High / Critical template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    L --> Z(["Submit to the CCB by the agenda cut-off"])
+    M --> Z
+    H --> Z
+    X --> Z
+    classDef q fill:#E6F0F5,stroke:#00577D,color:#1d2b33
+    classDef out fill:#F2F2F2,stroke:#7F7F7F,color:#1d2b33
+    classDef em fill:#FDECEA,stroke:#C0392B,color:#1d2b33
+    classDef low fill:#C6EFCE,stroke:#2E7D32,color:#1d2b33
+    classDef med fill:#FFEB9C,stroke:#B8860B,color:#1d2b33
+    classDef high fill:#F8CBAD,stroke:#C65911,color:#1d2b33
+    classDef crit fill:#FF9B9B,stroke:#C00000,color:#1d2b33
+    classDef term fill:#00577D,stroke:#00577D,color:#FFFFFF
+    class B,C,D,E,F,G q
+    class B1,C1 out
+    class D1 em
+    class L low
+    class M med
+    class H high
+    class X crit
+    class A,Z term
+```
+
+![Which change process should I follow?](assets/wghg-change-process-selector.png)
+
+*Confluence: Confluence does not draw Mermaid diagrams without an add-on. Upload `assets/wghg-change-process-selector.png` and insert it here, or paste the Mermaid code above into a Mermaid macro if your site has one.*
+
+---
+
 ## Plan on a Page (A3)
 
 *Guidance: This one-page summary of the change is presented to the CCB. In Word it prints as a single A3 landscape page. The run sheet workbook has the same layout on its **Plan on a Page** tab, where the timeline fills in automatically from the run sheet.*
@@ -40,7 +97,7 @@
 |---|---|---|---|
 | Change ID | [CHG0001234] | CCB Meeting Date | [DD/MM/YYYY] |
 | Change Title | [Enter] | Decision Requested | [Approve for implementation] |
-| Change Type | [Normal / Emergency] | Overall Risk Rating | [Low / Medium / High / Extreme] |
+| Change Type | [Normal / Emergency] | Overall Risk Rating | [High / Critical] |
 | Approved Window | [DD/MM/YYYY HH:MM – HH:MM] | Expected Outage | [Enter duration and services] |
 
 ### What, Why and Success
@@ -111,7 +168,7 @@
 | Who / what is affected | [Services, sites, departments and approximate number of users] |
 | Service outage | ☐ No outage ☐ Degraded service ☐ Full outage. Duration: [Enter] |
 | Clinical / patient safety impact | ☐ None ☐ Low ☐ Medium ☐ High. [Enter one-line summary] |
-| Overall risk rating (Section 7) | ☐ Low ☐ Medium ☐ High ☐ Extreme |
+| Overall risk rating (Section 7) | ☐ High ☐ Critical |
 | Backout available | ☐ Yes ☐ No. Estimated backout time: [Enter] |
 | Recommendation to the CCB | [Enter, e.g. "The CCB approves CHG0001234 for implementation on DD/MM/YYYY."] |
 
@@ -212,29 +269,50 @@
 
 ---
 
-## 7. Risk Assessment
+## 7. Risk Assessment (ITIL Impact and Probability)
 
-*Guidance: Score each risk as Likelihood (1–5) × Consequence (1–5). The overall risk rating of this change is the highest residual risk. Align ratings with the WGHG Risk Management Framework. Replace the matrix below if WGHG uses different bands.*
+*Guidance: A High / Critical change meets at least one High-Impact criterion. It is **Critical** if any High-Probability criterion also applies, and **High** if none do. Then record the specific risks of this change in the risk register.*
+
+### Impact and Probability Assessment
+
+**Impact is High if ANY of these apply:**
+
+| # | High-Impact Criterion | Applies? | Details |
+|---|---|---|---|
+| I1 | Affects a clinical system, patient care, or the availability of patient information | ☐ Yes ☐ No | [Enter] |
+| I2 | Affects a medical device or a medical device interface | ☐ Yes ☐ No | [Enter] |
+| I3 | Affects a 24/7 critical area (e.g. Emergency, ICU / HDU, Maternity, Theatres) | ☐ Yes ☐ No | [Enter] |
+| I4 | Causes a user-facing outage or degraded service during clinical or business hours | ☐ Yes ☐ No | [Enter] |
+| I5 | Affects more than [Enter threshold, e.g. 50] users, or more than one site | ☐ Yes ☐ No | [Enter] |
+| I6 | Changes security controls, access, firewall rules, or how health or personal information is handled | ☐ Yes ☐ No | [Enter] |
+| I7 | Affects integrations or interfaces with other systems | ☐ Yes ☐ No | [Enter] |
+
+**Probability is High if ANY of these apply:**
+
+| # | High-Probability Criterion | Applies? | Details |
+|---|---|---|---|
+| P1 | The change has not been done before at WGHG | ☐ Yes ☐ No | [Enter] |
+| P2 | The change has not been tested in a test / UAT environment | ☐ Yes ☐ No | [Enter] |
+| P3 | The change is complex: many steps, several teams or several CIs | ☐ Yes ☐ No | [Enter] |
+| P4 | Success depends on a vendor or third party | ☐ Yes ☐ No | [Enter] |
+| P5 | A similar change has failed or caused an incident before | ☐ Yes ☐ No | [Enter] |
+| P6 | The backout has not been tested, or the change cannot be backed out | ☐ Yes ☐ No | [Enter] |
+| P7 | The implementation window is tight for the work plus a full backout | ☐ Yes ☐ No | [Enter] |
+
+| Impact ↓ / Probability → | Low Probability | High Probability |
+|---|---|---|
+| **High Impact** | High | Critical |
+| **Low Impact** | Low | Medium |
 
 ### 7.1 Risk Register for this Change
 
-| # | Risk Description | Likelihood (1–5) | Consequence (1–5) | Score (L×C) | Rating | Mitigation / Control | Residual Rating | Owner |
-|---|---|---|---|---|---|---|---|---|
-| R1 | [Enter risk] | [ ] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
-| R2 | [Enter risk] | [ ] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
-| R3 | [Enter risk] | [ ] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
+| # | Risk Description | Impact (High / Low) | Probability (High / Low) | Risk Level | Mitigation / Control | Residual Risk Level | Owner |
+|---|---|---|---|---|---|---|---|
+| R1 | [Enter risk] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
+| R2 | [Enter risk] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
+| R3 | [Enter risk] | [ ] | [ ] | [ ] | [Enter] | [ ] | [Name] |
 
-### 7.2 Risk Rating Matrix (Likelihood × Consequence)
-
-| Likelihood ↓ / Consequence → | 1 Insignificant | 2 Minor | 3 Moderate | 4 Major | 5 Catastrophic |
-|---|---|---|---|---|---|
-| **5 Almost Certain** | Medium (5) | High (10) | High (15) | Extreme (20) | Extreme (25) |
-| **4 Likely** | Low (4) | Medium (8) | High (12) | High (16) | Extreme (20) |
-| **3 Possible** | Low (3) | Medium (6) | Medium (9) | High (12) | High (15) |
-| **2 Unlikely** | Low (2) | Low (4) | Medium (6) | Medium (8) | High (10) |
-| **1 Rare** | Low (1) | Low (2) | Low (3) | Low (4) | Medium (5) |
-
-**Rating bands:** Low = 1–4 · Medium = 5–9 · High = 10–16 · Extreme = 20–25
+**Overall risk level:** ☐ High (high impact, low probability) ☐ Critical (high impact, high probability)
 
 ---
 
@@ -301,7 +379,7 @@
 | ICT Service Desk | Change details, expected calls, workarounds | [Enter] | [Name] | [Enter, e.g. 5 business days prior] |
 | Affected clinical areas / NUMs | Outage window, downtime procedures | [Enter] | [Name] | [Enter] |
 | After-Hours Hospital Coordinator / Manager | Outage window, escalation contacts | [Enter] | [Name] | [Enter] |
-| Executive / Senior Management | Summary (High / Extreme risk only) | [Enter] | [Name] | [Enter] |
+| Executive / Senior Management | Summary of the change and its risk | [Enter] | [Name] | [Enter] |
 | Vendors / third parties | Confirmation of support during the window | [Enter] | [Name] | [Enter] |
 | All affected users | Start, completion and any issues | [Enter] | [Name] | Start and completion |
 
@@ -383,7 +461,7 @@ R = Responsible · A = Accountable · C = Consulted · I = Informed
 
 ## 16. Post-Implementation Review (PIR) – reported back to the CCB
 
-*Guidance: A PIR is required if this change failed, was an emergency change, or was rated High / Extreme risk, and whenever the CCB requests one.*
+*Guidance: A PIR is required for every High or Critical risk change.*
 
 | Question | Response |
 |---|---|

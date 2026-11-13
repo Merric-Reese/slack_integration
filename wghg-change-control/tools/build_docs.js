@@ -58,8 +58,8 @@ function colWidths(rows, total) {
   return w;
 }
 
-const RATING_FILL = { Low: "C6EFCE", Medium: "FFEB9C", High: "F8CBAD", Extreme: "FF9B9B" };
-const ratingFill = (t) => { const m = /^(Low|Medium|High|Extreme) \(\d+\)$/.exec(t); return m ? RATING_FILL[m[1]] : undefined; };
+const RATING_FILL = { Low: "C6EFCE", Medium: "FFEB9C", High: "F8CBAD", Critical: "FF9B9B" };
+const ratingFill = (t) => { const m = /^(Low|Medium|High|Critical)( \(\d+\))?$/.exec(t); return m ? RATING_FILL[m[1]] : undefined; };
 
 function cell(txtOrParas, { w, fill, run = {}, keepNext = false, minH } = {}) {
   const children = Array.isArray(txtOrParas) ? txtOrParas
@@ -109,7 +109,7 @@ function popRow(boxes, total, minH = 1500) {
 }
 const gap = () => new Paragraph({ spacing: { before: 0, after: 100 }, children: [] });
 
-function planOnAPage() {
+function planOnAPage(risk) {
   const T = cw(A3L);
   const kids = [];
   kids.push(new Paragraph({
@@ -126,7 +126,7 @@ function planOnAPage() {
   }));
   // Change at a glance: 4 label/value pairs x 2 rows
   const pairs = [
-    ["Change Type", "[Normal / Emergency]"], ["Overall Risk Rating", "[Low / Medium / High / Extreme]"],
+    ["Change Type", "[Normal / Emergency]"], ["Overall Risk Rating", risk],
     ["Decision Requested", "[Approve for implementation]"], ["Change Owner", "[Name, position]"],
     ["Approved Window", "[DD/MM/YYYY HH:MM – HH:MM]"], ["Expected Outage", "[Duration; services affected]"],
     ["Go / No-Go Decision", "[DD/MM HH:MM]"], ["Backout Decision Point", "[DD/MM HH:MM]"],
@@ -210,7 +210,7 @@ function sectionProps(page, landscape) {
 }
 
 // ---------- markdown -> sections ----------
-function build({ md, out, footerText, title, description, pop, a3Heading }) {
+function build({ md, out, footerText, title, description, pop, popRisk, a3Heading, breakBefore }) {
   const lines = fs.readFileSync(path.join(DIR, md), "utf8").split("\n");
   const sections = [];
   let children = [];
@@ -228,12 +228,13 @@ function build({ md, out, footerText, title, description, pop, a3Heading }) {
     const line = lines[i];
     if (pop && line.startsWith("## Plan on a Page")) {
       flushA4();
-      sections.push({ properties: sectionProps(A3L, true), headers: { default: header(A3L) }, footers: { default: footer(A3L, footerText + "   |   Plan on a Page (A3)") }, children: planOnAPage() });
+      sections.push({ properties: sectionProps(A3L, true), headers: { default: header(A3L) }, footers: { default: footer(A3L, footerText + "   |   Plan on a Page (A3)") }, children: planOnAPage(popRisk) });
       while (i < lines.length && lines[i].trim() !== "---") i++;
       i++; continue;
     }
     if (a3Heading && line.startsWith("## ") && a3Heading.test(line.slice(3))) setPage(A3L);
     if (line.trim() === "---" && page === A3L) { setPage(A4); i++; continue; }
+    if (line.startsWith("```")) { i++; while (i < lines.length && !lines[i].startsWith("```")) i++; i++; continue; }
     if (line.startsWith("![")) {
       const m = /\]\(([^)]+)\)/.exec(line);
       if (m && !/^https?:/.test(m[1])) {
@@ -242,7 +243,9 @@ function build({ md, out, footerText, title, description, pop, a3Heading }) {
         if (page === A4 && fs.existsSync(path.join(DIR, a4src))) src = a4src;
         const img = fs.readFileSync(path.join(DIR, src));
         const wpx = img.readUInt32BE(16), hpx = img.readUInt32BE(20);
-        const w = Math.round(T / 15), h = Math.round(w * hpx / wpx);
+        let w = Math.round(T / 15), h = Math.round(w * hpx / wpx);
+        const maxH = page === A4 ? 800 : 640;
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
         children.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 120 }, children: [
           new ImageRun({ type: "png", data: img, transformation: { width: w, height: h }, altText: { title: "Process overview", description: line.slice(2, line.indexOf("]")), name: path.basename(src) } })] }));
       }
@@ -260,7 +263,7 @@ function build({ md, out, footerText, title, description, pop, a3Heading }) {
       continue;
     }
     if (line.startsWith("# ")) children.push(new Paragraph({ heading: HeadingLevel.TITLE, children: runs(line.slice(2)) }));
-    else if (line.startsWith("## ")) children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: /^14\. CCB Decision/.test(line.slice(3)), children: runs(line.slice(3)) }));
+    else if (line.startsWith("## ")) children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: /^\d+\. CCB Decision/.test(line.slice(3)) || (!!breakBefore && breakBefore.test(line.slice(3))), children: runs(line.slice(3)) }));
     else if (line.startsWith("### ")) children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: runs(line.slice(4)) }));
     else if (line.startsWith("> ")) children.push(new Paragraph({
       shading: shade("FEF3E0"), border: { left: { style: BorderStyle.SINGLE, size: 24, color: ORANGE, space: 8 } },
@@ -301,15 +304,22 @@ function build({ md, out, footerText, title, description, pop, a3Heading }) {
 }
 
 (async () => {
-  await build({
-    md: "WGHG_CCB_ICT_Change_Submission_Template.md", out: "WGHG_CCB_ICT_Change_Submission_Template.docx",
-    footerText: "WGHG CCB ICT Change Submission – Change ID: [Enter]   |   Uncontrolled when printed",
-    title: "WGHG CCB ICT Change Submission Template",
-    description: "ITIL 4 aligned single-change submission template for the WGHG Change Control Board", pop: true,
-  });
+  const tpl = [
+    ["Minor", "Minor (Low Risk)", false, null],
+    ["Medium", "Medium Risk", true, "Medium"],
+    ["High-Critical", "High / Critical Risk", true, "[High / Critical]", /^Which Change Process/],
+  ];
+  for (const [suffix, label, pop, popRisk, breakBefore] of tpl) {
+    await build({
+      md: `WGHG_CCB_ICT_Change_Submission_Template_${suffix}.md`, out: `WGHG_CCB_ICT_Change_Submission_Template_${suffix}.docx`,
+      footerText: `WGHG CCB ICT Change Submission – ${label} – Change ID: [Enter]   |   Uncontrolled when printed`,
+      title: `WGHG CCB ICT Change Submission Template – ${label}`,
+      description: `ITIL 4 aligned single-change CCB submission template for ${label} changes`, pop, popRisk, breakBefore,
+    });
+  }
   await build({
     md: "WGHG_ICT_Change_Control_Process.md", out: "WGHG_ICT_Change_Control_Process.docx",
-    footerText: "WGHG ICT Change Control Process – Version 0.1 DRAFT   |   Uncontrolled when printed",
+    footerText: "WGHG ICT Change Control Process – Version 0.2 DRAFT   |   Uncontrolled when printed",
     title: "WGHG ICT Change Control Process",
     description: "ITIL 4 aligned ICT change control process for the WGHG Change Control Board", pop: false,
     a3Heading: /^2\. Process at a Glance/,

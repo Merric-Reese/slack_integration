@@ -12,12 +12,16 @@
     - **01 – Change Control Process**
         - ICT Change Control Process – paste `WGHG_ICT_Change_Control_Process.md`
         - Process at a Glance – attach `assets/wghg-change-control-process.png`
-        - Roles and Responsibilities – from Section 5 of the process
-        - Emergency Change Procedure – from Section 9 of the process
+        - Which Change Process Should I Follow? – from Section 3 of the process; attach `assets/wghg-change-process-selector.png` (or use a Mermaid macro with `assets/wghg-change-process-selector.mmd`)
+        - Risk Levels and Templates – from Section 7 of the process
+        - Roles and Responsibilities – from Section 6 of the process
+        - Emergency Change Procedure – from Section 10 of the process
         - Change Freeze and Blackout Calendar **[to be created]**
     - **02 – Templates**
-        - CCB Change Submission Template (Confluence) – paste `WGHG_CCB_ICT_Change_Submission_Template.md`; save as a Confluence page template if available
-        - CCB Change Submission Template (Word) – attach `WGHG_CCB_ICT_Change_Submission_Template.docx`
+        - CCB Change Submission – Minor (Low Risk) – paste `WGHG_CCB_ICT_Change_Submission_Template_Minor.md`; attach the `.docx`
+        - CCB Change Submission – Medium Risk – paste `WGHG_CCB_ICT_Change_Submission_Template_Medium.md`; attach the `.docx`
+        - CCB Change Submission – High / Critical Risk – paste `WGHG_CCB_ICT_Change_Submission_Template_High-Critical.md`; attach the `.docx`
+        - Save each as a Confluence page template, if your site allows it
         - ICT Change Run Sheet and Plan on a Page (Excel) – attach `WGHG_CCB_ICT_Change_Run_Sheet_Template.xlsx`
         - Template Index – paste `INDEX.md`
     - **03 – Change Control Board (CCB)**
@@ -29,12 +33,12 @@
     - **04 – Changes** (one page per change)
         - YYYY
             - CHG0001234 – [Change Title]
-                - CCB Submission – created from the CCB Change Submission Template
-                - Attachments: Run Sheet (Excel); Plan on a Page (A3 PDF export); test evidence
+                - CCB Submission – created from the Minor, Medium or High / Critical template
+                - Attachments (Medium and above): Run Sheet (Excel); Plan on a Page (A3 PDF export); test evidence
                 - Implementation Record and PIR – Sections 15–17 of the submission
     - **05 – Change Schedule** – forward schedule of approved changes **[to be created]**
     - **06 – Standard Change Catalogue** – pre-authorised standard change models **[to be created]**
-    - **07 – Reports and Measures** – change success, emergency changes, PIR completion (process Section 13) **[to be created]**
+    - **07 – Reports and Measures** – change success, emergency changes, PIR completion (process Section 14) **[to be created]**
 
 ---
 
@@ -45,12 +49,15 @@ ICT Change Control
 ├── 01 – Change Control Process
 │   ├── ICT Change Control Process
 │   ├── Process at a Glance
+│   ├── Which Change Process Should I Follow?
+│   ├── Risk Levels and Templates
 │   ├── Roles and Responsibilities
 │   ├── Emergency Change Procedure
 │   └── Change Freeze and Blackout Calendar        [to be created]
 ├── 02 – Templates
-│   ├── CCB Change Submission Template (Confluence)
-│   ├── CCB Change Submission Template (Word)
+│   ├── CCB Change Submission – Minor (Low Risk)
+│   ├── CCB Change Submission – Medium Risk
+│   ├── CCB Change Submission – High / Critical Risk
 │   ├── ICT Change Run Sheet and Plan on a Page (Excel)
 │   └── Template Index
 ├── 03 – Change Control Board (CCB)
@@ -63,7 +70,7 @@ ICT Change Control
 │   └── YYYY
 │       └── CHG0001234 – [Change Title]
 │           ├── CCB Submission
-│           ├── Run Sheet + Plan on a Page (attachment)
+│           ├── Run Sheet + Plan on a Page (Medium and above)
 │           └── Implementation Record and PIR
 ├── 05 – Change Schedule                            [to be created]
 ├── 06 – Standard Change Catalogue                  [to be created]
@@ -92,6 +99,7 @@ ICT Change Control
 |---|---|
 | `change-control` | Every page in this tree |
 | `ccb-submission` | Each change's CCB Submission page |
+| `risk-low` / `risk-medium` / `risk-high` / `risk-critical` | Each change page, by its risk level |
 | `ccb-approved` / `ccb-deferred` / `ccb-rejected` | Each change page, once the CCB has decided |
 | `emergency-change` | Emergency change pages |
 | `pir-required` | Changes that need a Post-Implementation Review |

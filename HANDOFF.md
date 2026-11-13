@@ -2,7 +2,7 @@
 
 **Branch:** `claude/relaxed-bell-b8219d`
 **Work folder:** `wghg-change-control/`
-**Status:** first full draft complete and pushed; waiting for WGHG review
+**Status:** second draft complete and pushed; waiting for WGHG review
 
 ---
 
@@ -18,33 +18,45 @@ Build an ITIL-based ICT change control pack for West Gippsland Healthcare Group 
 6. A draft Confluence folder (page) structure to paste into Confluence.
 7. An index of all files: why each exists and where it fits in the process.
 8. A Slack message on completion. **Not done.** See Section 5.
+9. Two **simpler templates** containing only the mandatory information: **Minor** and **Medium**. The full template is kept for **High / Critical**.
+10. A **flowchart (Mermaid)** in all the process files, to help people decide which change process to follow.
+11. **Use ITIL to determine risk levels** for now; refine later.
+
+### Decisions made with the user
+
+- **Tiers follow the risk level:** Low → Minor template; Medium → Medium template; High or Critical → High / Critical template.
+- **"Extreme" renamed "Critical"** everywhere.
+- **Attachments:** Minor needs none, because its steps are written in the form. Medium and High / Critical attach the Run Sheet and present the A3 Plan on a Page.
 
 ---
 
 ## 2. What Was Delivered
 
-Everything is in `wghg-change-control/`. **Read `INDEX.md` first**: it describes every file and tab and maps each to a process step.
+Everything is in `wghg-change-control/`. **Read `INDEX.md` first.**
 
 | File | Summary |
 |---|---|
-| `WGHG_CCB_ICT_Change_Submission_Template.md` / `.docx` | CCB submission for a single change, in 17 sections (summary below). In Word: page 1 is the process overview, page 2 is the A3 landscape Plan on a Page, and Section 14 (CCB Decision) starts on a new page. |
-| `WGHG_CCB_ICT_Change_Run_Sheet_Template.xlsx` | Workbook with tabs: Change Details, Plan on a Page (A3, auto-filled), Run Sheet (24 draft steps in 6 phases), Contacts, Comms Log, Issues & Decisions, and a hidden Lists tab. |
-| `WGHG_ICT_Change_Control_Process.md` / `.docx` | Process document. In Word, Section 2 "Process at a Glance" prints on an A3 landscape page. |
-| `WGHG_Confluence_Page_Structure.md` | Paste-ready Confluence page tree (as a nested list and as a text tree), plus naming conventions and labels. |
-| `INDEX.md` | File index, run sheet tab descriptions and the per-change workflow. |
-| `README.md` | Short overview, rebuild commands and assumptions. |
-| `assets/` | WGHG banner and logo mark (downloaded from wghg.com.au), plus the process diagram in a full and a compact A4 version. |
-| `tools/build_docs.js`, `tools/build_run_sheet.py` | Builders that regenerate the Word and Excel files. |
+| `WGHG_CCB_ICT_Change_Submission_Template_Minor.md` / `.docx` | Low risk short form (5 Word pages). Includes the selector flowchart and the impact × probability checklist. |
+| `WGHG_CCB_ICT_Change_Submission_Template_Medium.md` / `.docx` | Medium risk form (7 Word pages). The A3 Plan on a Page is page 3. |
+| `WGHG_CCB_ICT_Change_Submission_Template_High-Critical.md` / `.docx` | Full submission (14 Word pages). The A3 Plan on a Page is page 4; the CCB Decision starts on a new page. Previously named `WGHG_CCB_ICT_Change_Submission_Template.*`. |
+| `WGHG_CCB_ICT_Change_Run_Sheet_Template.xlsx` | Workbook for Medium and above. Tabs: Change Details, Plan on a Page (A3, auto-filled), Run Sheet (24 draft steps), Contacts, Comms Log, Issues & Decisions, and a hidden Lists tab. |
+| `WGHG_ICT_Change_Control_Process.md` / `.docx` | Process document, v0.2 DRAFT (10 Word pages). Section 2 is the overview (A3 page). Section 3 is the process selector. Section 7 covers change types, ITIL risk levels and templates. |
+| `WGHG_Confluence_Page_Structure.md` | Paste-ready Confluence page tree, naming conventions and labels. |
+| `INDEX.md`, `README.md` | File index and per-change workflow; rebuild instructions and assumptions. |
+| `assets/` | WGHG logos (from wghg.com.au), the process overview diagrams, and the selector flowchart (`.mmd` source and `.png`). |
+| `tools/` | `shared_blocks.py`, `build_docs.js` and `build_run_sheet.py`. |
 
-### Submission sections
+### Risk levels (ITIL impact × probability)
 
-- Before the numbered sections: the process overview and the Plan on a Page.
-- 1–3: CCB submission details, executive summary, change details.
-- 4–7: description, ITIL "7 Rs", impact assessment, 5×5 risk assessment.
-- 8–12: implementation summary, test plan, backout plan, schedule and conflicts, communications.
-- 13–14: RACI and pre-CCB endorsements; CCB decision.
-- 15–17: implementation record, PIR, closure.
-- Appendices: lifecycle and definitions.
+| Impact | Probability | Risk Level | Template |
+|---|---|---|---|
+| Low | Low | Low | Minor |
+| Low | High | Medium | Medium |
+| High | Low | High | High / Critical |
+| High | High | Critical | High / Critical |
+
+- **Criteria:** Impact is High if any of I1–I7 applies (clinical systems or patient care, medical devices, 24/7 areas, outage in hours, user / site threshold, security / privacy, interfaces). Probability is High if any of P1–P7 applies (new, untested, complex, vendor-dependent, previous failure, untested backout, tight window).
+- **Source:** I confirmed from public sources that ITIL assesses change risk from impact and probability. I could **not** check the ITIL publication's own example matrix: the hosts were blocked, and no web result showed it. The documents therefore describe the criteria and the four-level mapping as a WGHG starting point, not as official ITIL wording.
 
 ### Logo sources (from the WGHG website)
 
@@ -56,29 +68,29 @@ Everything is in `wghg-change-control/`. **Read `INDEX.md` first**: it describes
 
 ## 3. How to Rebuild
 
-The Markdown files are the source for the Word documents. Run these from `wghg-change-control/`:
+Run these from `wghg-change-control/`:
 
 ```bash
-node tools/build_docs.js .            # needs the "docx" npm package
-python3 tools/build_run_sheet.py .    # needs openpyxl and Pillow
+python3 tools/shared_blocks.py .      # copies the selector flowchart, selection table and criteria into every .md
+node tools/build_docs.js .            # rebuilds all four Word documents (needs the "docx" npm package)
+python3 tools/build_run_sheet.py .    # rebuilds the workbook (needs openpyxl and Pillow)
 ```
 
-- **Excel:** openpyxl writes formulas without cached results. After rebuilding, open the workbook in Excel and save it, or recalculate it with LibreOffice.
-- **Word:** the builder reads the Markdown structure. It replaces the "Plan on a Page (A3)" Markdown section with a native A3 page, and puts the process document's Section 2 on an A3 page. Editing table content in the Markdown is safe. **Renaming those headings will break that special handling.**
+- **Shared blocks:** edit the risk criteria and selection table in `tools/shared_blocks.py`, and the flowchart in `assets/wghg-change-process-selector.mmd`.
+- **Flowchart image:** after changing the `.mmd`, re-render the PNG. It was rendered with mermaid 11.4.1 in headless Chromium.
+- **Shared-block headings:** each block replaces the content under its fixed heading: "Which Change Process Should I Follow?", "Impact and Probability Assessment" and "Impact and Probability Criteria". **Don't rename these headings.**
+- **Word-builder headings:** the builder also relies on "Plan on a Page (A3)", "2. Process at a Glance" and "N. CCB Decision".
+- **Excel:** openpyxl writes formulas without cached results. Open the workbook in Excel and save it, or recalculate it with LibreOffice.
 
 ---
 
 ## 4. Verification Done
 
-- **Word:** both documents rendered to PDF and checked page by page.
-  - Submission: 11 pages; page 2 is A3, the rest A4.
-  - Process document: 7 pages; page 2 is A3.
-  - Both pass the DOCX schema validation.
-- **Excel:** 416 formulas recalculated with **0 errors**. Computed values were spot-checked:
-  - phase start and end times and the timeline bars match the Run Sheet;
-  - "within approved window" and "full backout within window" both return Yes for the example data.
-- **Markdown:** all tables parse as GitHub-flavoured Markdown, and the files contain no raw HTML, which Confluence would strip.
-- **Not tested:** the files have **not** been opened in Microsoft Word or Excel, and nothing has been pasted into Confluence. The rendering checks used LibreOffice.
+- **Word:** all four documents rendered to PDF and checked; all pass the DOCX schema validation. A3 pages: Medium page 3, High / Critical page 4, process document page 2.
+- **Excel:** formulas recalculated with **0 errors**. Plan on a Page timeline values and bars spot-checked against the Run Sheet.
+- **Markdown:** all tables parse as GitHub-flavoured Markdown, and the files contain no raw HTML. The only HTML-like text is `<br/>` inside the Mermaid code blocks.
+- **Flowchart:** the Mermaid source renders without errors (mermaid 11.4.1).
+- **Not tested:** the files have **not** been opened in Microsoft Word or Excel, nothing has been pasted into Confluence, and a Confluence Mermaid add-on has not been tested.
 
 ---
 
@@ -87,22 +99,29 @@ python3 tools/build_run_sheet.py .    # needs openpyxl and Pillow
 | # | Item | Owner |
 |---|---|---|
 | 1 | **Slack completion message not sent.** The Slack connector failed to connect in the cloud session (proxy 403). Send it from the Mac session, or fix the connector. Suggested text is below. | User / Mac session |
-| 2 | Confirm the placeholders against WGHG policy: CCB membership, quorum, meeting frequency, agenda cut-off, lead times, freeze periods, emergency CCB quorum. | WGHG ICT |
-| 3 | Align the 5×5 risk matrix bands with the WGHG Risk Management Framework. | WGHG ICT / Risk |
+| 2 | Refine the risk criteria (I1–I7, P1–P7), the user threshold in I5 and the Low / Medium / High / Critical mapping. Align them with the WGHG Risk Management Framework. | WGHG ICT / Risk |
+| 3 | Confirm the placeholders: CCB membership, quorum, meeting frequency, agenda cut-off, lead times, freeze periods, emergency CCB quorum, and any extra endorsement for Critical changes. | WGHG ICT |
 | 4 | Replace the generic system examples (EMR, PAS, PACS) and site placeholders with WGHG's actual systems and sites. | WGHG ICT |
 | 5 | Open the `.docx` and `.xlsx` files in Microsoft Office and confirm the layout, A3 printing, drop-downs and conditional formatting. | User |
-| 6 | Create the Confluence pages marked "[to be created]" in the page structure: CCB Terms of Reference, meeting agenda and minutes, Change Schedule, Standard Change Catalogue, Reports. No templates exist for these yet. | WGHG ICT |
+| 6 | Confluence: check whether the site has a Mermaid add-on. If not, use the PNG. Create the pages marked "[to be created]". | WGHG ICT |
 | 7 | Decide whether to keep this work in the `slack_integration` repository or move it to a dedicated repository or Confluence space. | User |
 
 **Suggested Slack message:**
 
-> The WGHG ICT Change Control pack is ready for review. It includes the CCB change submission (Word and Confluence) with an A3 Plan on a Page, a run sheet workbook with an auto-filled A3 Plan on a Page tab, the Change Control process document, a Confluence page structure and a file index. It's on branch `claude/relaxed-bell-b8219d`, folder `wghg-change-control/`.
+> The WGHG ICT Change Control pack is ready for review:
+> - three CCB submission templates (Minor, Medium, High / Critical) in Word and Confluence;
+> - a "Which change process should I follow?" flowchart;
+> - ITIL impact × probability risk levels;
+> - a run sheet workbook with an A3 Plan on a Page;
+> - the process document, a Confluence page structure and a file index.
+>
+> It's on branch `claude/relaxed-bell-b8219d`, folder `wghg-change-control/`.
 
 ---
 
 ## 6. Environment Notes
 
-- **Network:** the cloud session's Default environment blocked wghg.com.au. With the user's approval, a personal environment named **"slack_integration (WGHG web access)"** was created, which allows `wghg.com.au` and `www.wghg.com.au`. The session was switched onto it.
+- **Network:** the cloud session's Default environment blocked wghg.com.au. With the user's approval, a personal environment named **"slack_integration (WGHG web access)"** was created, which allows `wghg.com.au` and `www.wghg.com.au`. The session was switched onto it. Other sites, such as ITIL reference pages, are still blocked from this session.
 - **Mac folders:** the user shared the folders "WGHG" and "Claude" via Remote Control on `Merrics-MacBook-Pro-2`. The Mac did not offer them to the cloud session (reported as "not_available"). The usual causes:
   - the folder sits inside a hidden folder directly under the home folder, or inside `~/Library`;
   - the Claude app on the Mac needs updating.
@@ -120,4 +139,5 @@ python3 tools/build_run_sheet.py .    # needs openpyxl and Pillow
 |---|---|
 | `0d1db5a` | Add WGHG CCB ICT change submission and run sheet templates |
 | `3eb40c5` | Add change control process, A3 Plan on a Page, Confluence structure and index |
-| (this commit) | Add HANDOFF.md |
+| `66a13a9` | Add HANDOFF.md |
+| (this commit) | Add Minor and Medium templates, process selector flowchart and ITIL risk levels |

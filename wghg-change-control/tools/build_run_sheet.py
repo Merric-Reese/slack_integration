@@ -57,7 +57,7 @@ lists = {
     "F": ("OpenClosed", ["Open", "Closed"]),
     "G": ("Decision", ["Approved", "Approved with conditions"]),
     "H": ("ChangeType", ["Normal", "Emergency"]),
-    "I": ("Risk", ["Low", "Medium", "High", "Extreme"]),
+    "I": ("Risk", ["Low", "Medium", "High", "Critical"]),
 }
 for col, (name, vals) in lists.items():
     L[f"{col}1"] = name
@@ -80,7 +80,7 @@ C.row_dimensions[1].height = 42
 banner(C, BANNER, 1000, 60, "B1")
 C["B3"] = "ICT Change Run Sheet – Change Control Board (CCB) Approved Change"
 C["B3"].font = font(size=16, bold=True, color=NAVY)
-C["B4"] = "One run sheet per change. Complete this sheet first; the Run Sheet tab reads the window, Go / No-Go and backout times from here."
+C["B4"] = "One run sheet per change, for Medium, High and Critical risk changes (Minor changes do not need one). Complete this tab first; the other tabs read from it."
 C["B4"].font = font(size=9, italic=True, color="595959")
 c = C["B5"]; c.value = "Legend:  Fill in"; style(c, f=font(size=9, bold=True), fill=INPUT, wrap=False)
 c = C["C5"]; c.value = "Formula – do not edit"; style(c, f=font(size=9), fill=CALC, wrap=False)
@@ -325,7 +325,7 @@ contacts = [
     ["Business / Clinical Owner", "[Name]", "[Department]", "[Mobile]", "[Email]", "Verification phase", "1"],
     ["After-Hours Hospital Coordinator / Manager", "[Name]", "Operations", "[Phone]", "[Email]", "Full window", "1"],
     ["ICT Manager / Escalation", "[Name]", "ICT", "[Mobile]", "[Email]", "On call", "3"],
-    ["Executive on Call", "[Name]", "Executive", "[Mobile]", "[Email]", "On call (High / Extreme risk)", "4"],
+    ["Executive on Call", "[Name]", "Executive", "[Mobile]", "[Email]", "On call (High / Critical risk)", "4"],
 ]
 log_sheet("Contacts", "Contacts & Escalation", ["Role", "Name", "Team / Organisation", "Phone / Mobile", "Email", "Availability During Change", "Escalation Level"],
           [36, 22, 20, 18, 28, 28, 12], contacts, [], nrows=15)
@@ -462,7 +462,7 @@ box_row(28, ["Impacted services, sites and users", "Top risks and mitigations", 
 
 # Communications / readiness / contacts
 for (a, b), t in zip(BOXES, ["Communications", "Readiness checklist", "Key contacts (from the Contacts tab)"]): hdr(f"{a}36:{b}36", t)
-comms_aud = ["ICT Service Desk", "Clinical areas / NUMs", "After-Hours Hospital Coordinator", "Executive (High / Extreme risk)", "Vendors / third parties", "All affected users", ""]
+comms_aud = ["ICT Service Desk", "Clinical areas / NUMs", "After-Hours Hospital Coordinator", "Executive (High / Critical risk)", "Vendors / third parties", "All affected users", ""]
 ready = ["Pre-CCB endorsements obtained", "Testing complete (Test / UAT)", "Backup / snapshot plan confirmed", "Run Sheet finalised",
          "Downtime procedures confirmed with clinical areas", "Vendor support confirmed", "Service Desk briefed"]
 contact_rows = [("Change Manager", 6), ("Implementation Lead", 7), ("Business / Clinical Owner", 12), ("After-Hours Hospital Coordinator", 13),
