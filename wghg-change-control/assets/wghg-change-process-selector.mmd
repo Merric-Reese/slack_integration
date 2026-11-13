@@ -1,0 +1,35 @@
+flowchart TD
+    A(["I need to make a change to an ICT service"]) --> B{"Service request?<br/>(e.g. password reset)"}
+    B -- Yes --> B1["Not a change<br/>Log a Service Request in the ITSM tool"]
+    B -- No --> C{"In the Standard<br/>Change Catalogue?"}
+    C -- Yes --> C1["Standard change<br/>Follow its pre-authorised model<br/>No CCB submission"]
+    C -- No --> D{"Urgent fix for a<br/>major incident or<br/>security risk?"}
+    D -- Yes --> D1["Emergency change<br/>Emergency CCB quorum authorises<br/>Still assess risk and use the<br/>template for its risk level"]
+    D -- No --> E{"Any high-impact<br/>criterion?<br/>(I1–I7)"}
+    D1 --> E
+    E -- No --> F{"Any high-probability<br/>criterion?<br/>(P1–P7)"}
+    E -- Yes --> G{"Any high-probability<br/>criterion?<br/>(P1–P7)"}
+    F -- No --> L["LOW risk<br/>Minor template<br/>No attachments"]
+    F -- Yes --> M["MEDIUM risk<br/>Medium template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    G -- No --> H["HIGH risk<br/>High / Critical template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    G -- Yes --> X["CRITICAL risk<br/>High / Critical template<br/>+ Run Sheet<br/>+ A3 Plan on a Page"]
+    L --> Z(["Submit to the CCB by the agenda cut-off"])
+    M --> Z
+    H --> Z
+    X --> Z
+    classDef q fill:#E6F0F5,stroke:#00577D,color:#1d2b33
+    classDef out fill:#F2F2F2,stroke:#7F7F7F,color:#1d2b33
+    classDef em fill:#FDECEA,stroke:#C0392B,color:#1d2b33
+    classDef low fill:#C6EFCE,stroke:#2E7D32,color:#1d2b33
+    classDef med fill:#FFEB9C,stroke:#B8860B,color:#1d2b33
+    classDef high fill:#F8CBAD,stroke:#C65911,color:#1d2b33
+    classDef crit fill:#FF9B9B,stroke:#C00000,color:#1d2b33
+    classDef term fill:#00577D,stroke:#00577D,color:#FFFFFF
+    class B,C,D,E,F,G q
+    class B1,C1 out
+    class D1 em
+    class L low
+    class M med
+    class H high
+    class X crit
+    class A,Z term
