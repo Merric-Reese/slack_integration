@@ -8,77 +8,107 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* VOICE: plain test instrument, calm and exact
-   IDEA: a surveyor's field sheet — map on top, readings below
-   PICTURE: the live map with the fence circle and your dot
-   COLOUR and TYPE: blue dashboard — blue header and status tiles; Space Grotesk + Inter
-   LAYOUT: map first (55vh), status band, controls, event log */
-:root{color-scheme:light dark;--bg:light-dark(#f3f7fd,#08142a);--ink:light-dark(#0b1f3f,#e8f0ff);--mute:light-dark(#4a5d7c,#9fb3d4);--line:light-dark(#cfdcf0,#1d3460);--blue:#1653c7;--card:light-dark(#fff,#0f2040);--in:#18a957;--out:#ff6a4d}
+/* VOICE: calm live-tracking dashboard, readable at a glance on a phone
+   IDEA: a dispatcher's board — one big status, supporting readings, one obvious action
+   PICTURE: the map with fence, dashed nearby ring and live dot
+   COLOUR and TYPE: deep navy ground, royal blue panels, green = inside, amber = outside; Space Grotesk + Inter
+   LAYOUT: header pill, map, hero state tile + 4 readings, sticky Start bar, folded settings, log */
+:root{color-scheme:light dark;--bg:light-dark(#eef3fb,#07122a);--ink:light-dark(#0b1f3f,#e9f0ff);--mute:light-dark(#50627f,#93a7cb);--line:light-dark(#d3deef,#1b2f57);--blue:#1f56d6;--blue2:#2c64e6;--card:light-dark(#fff,#0e1d3d);--in:#19b45f;--out:#f39a1c;--idle:#5b6f96}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
-h1,h2,.big{font-family:"Space Grotesk",system-ui,sans-serif}
-header{background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-h1{font-size:22px;margin:0}
-#map{height:55vh;min-height:300px;border-block:1px solid var(--line)}
-.status{background:var(--blue);color:#fff;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.status>div{background:rgba(255,255,255,.12);border-radius:10px;padding:12px}
-.big{font-size:34px;font-weight:700;line-height:1.05}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+h1,h2,.big,.hero b{font-family:"Space Grotesk",system-ui,sans-serif}
+header{background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:21px;margin:0;line-height:1.1}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;padding:6px 12px;border-radius:99px;background:rgba(255,255,255,.16);white-space:nowrap}
+.pill::before{content:"";width:9px;height:9px;border-radius:50%;background:#b9c6e4}
+.pill.live::before{background:#3ff08a;box-shadow:0 0 0 0 rgba(63,240,138,.7);animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(63,240,138,0)}100%{box-shadow:0 0 0 0 rgba(63,240,138,0)}}
+@media(prefers-reduced-motion:reduce){.pill.live::before{animation:none}}
+#map{height:46vh;min-height:280px}
+.status{background:var(--blue);color:#fff;padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{background:rgba(255,255,255,.12);border-radius:12px;padding:12px 14px}
+.hero{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--idle)}
+.hero.inside{background:var(--in)}.hero.outside{background:var(--out)}
+.hero b{display:block;font-size:clamp(30px,9vw,42px);line-height:1.05}
+.hero .sub{font-size:14px;opacity:.95}
+.hero .side{text-align:right;font-size:14px}
 .lbl{font-size:13px;opacity:.85}
-.val{font-weight:600;white-space:nowrap}
-.band{padding:16px;max-width:760px}
+.val{font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:light-dark(rgba(238,243,251,.94),rgba(7,18,42,.94));backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+.bar button{flex:1}
+.band{padding:16px;max-width:760px;margin:0 auto}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px 14px}
+summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;list-style:none}
+summary::after{content:"▾";margin-left:auto;color:var(--mute)}details[open] summary::after{content:"▴"}
 label{display:block;font-size:14px;color:var(--mute);margin:12px 0 4px}
-input[type=text],input[type=password]{width:100%;font-size:16px;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
-input[type=range]{width:100%;height:44px}
+input[type=text],input[type=password]{width:100%;font-size:16px;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;height:44px;accent-color:var(--blue)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-button{font:600 16px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--blue);background:var(--card);color:var(--ink)}
-button.primary{background:var(--blue);color:#fff}
-button:focus-visible,input:focus-visible{outline:3px solid var(--in);outline-offset:2px}
-.hint{font-size:14px;color:var(--mute)}
+button{font:600 16px Inter,sans-serif;min-height:48px;padding:0 16px;border-radius:10px;border:1px solid var(--blue);background:var(--card);color:var(--ink)}
+button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+button.primary.stop{background:#c8332b;border-color:#c8332b}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--blue2);outline-offset:2px}
+.hint{font-size:14px;color:var(--mute);margin:10px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 16px;margin-top:14px}
+h2{font-size:18px;margin:10px 0 4px}
 #log{list-style:none;padding:0;margin:0}
-#log li{border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+#log li{border-top:1px solid var(--line);padding:9px 0;font-size:14px}
+#log li:first-child{border-top:0}
 #log b.in{color:var(--in)}#log b.out{color:var(--out)}
-h2{font-size:20px;margin:8px 0 0}
+@media(min-width:760px){.status{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<header><h1>Geofence Tester</h1><span class="hint" id="clock">Not tracking</span></header>
+<header><h1>Geofence Tester</h1><span class="pill" id="clock">Not tracking</span></header>
 <div id="map"></div>
 
 <section class="status" aria-live="polite">
-  <div><div class="lbl">State</div><div class="big" id="state">—</div></div>
-  <div><div class="lbl">Distance to centre</div><div class="val" id="dist">—</div></div>
-  <div><div class="lbl">GPS accuracy</div><div class="val" id="acc">—</div></div>
-  <div><div class="lbl">Last fix</div><div class="val" id="last">—</div></div>
-</section>
-
-<section class="band">
-  <p class="hint">Tap the map to place the fence centre. Settings are saved on this device only.</p>
-  <label for="name">Fence name</label>
-  <input type="text" id="name" value="Home">
-  <label for="radius">Radius: <span id="rv">150</span> m</label>
-  <input type="range" id="radius" min="25" max="2000" step="25" value="150">
-  <label for="person">Person on this phone (used in Slack messages)</label>
-  <input type="text" id="person" placeholder="e.g. Sylvia">
-  <label for="near">Nearby alert distance (km, 0 = off)</label>
-  <input type="text" id="near" inputmode="decimal" value="5">
-  <label for="hook">Slack Incoming Webhook URL</label>
-  <input type="password" id="hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off">
-  <div class="row">
-    <button class="primary" id="startBtn">Start tracking</button>
-    <button id="testBtn">Send test message</button>
-    <button id="simBtn">Simulate: off</button>
-    <button id="meBtn">Fence at my spot</button>
-    <button id="shareBtn">Copy fence link</button>
+  <div class="tile hero" id="stateTile">
+    <div><div class="lbl">State</div><b id="state">Idle</b><div class="sub" id="who">Tap Start tracking below</div></div>
+    <div class="side"><div class="lbl">Nearby ring</div><div class="val" id="nearSt">—</div></div>
   </div>
-  <label style="display:flex;gap:8px;align-items:center;color:inherit"><input type="checkbox" id="shareHook" style="width:22px;height:22px"> Include Slack webhook in the link (test only)</label>
-  <input type="text" id="shareOut" readonly hidden aria-label="Fence link">
-  <p class="hint">Simulate mode adds a draggable pin so you can test without walking. Real GPS is ignored while it's on.</p>
-  <p class="hint">Copy fence link gives a link that loads this fence, nearby distance and person name on another phone. The Slack webhook is only included if you tick the box — anyone with that link can post to your channel, so only use it for testing.</p>
-  <p class="hint">While tracking, Slack also gets a message when tracking starts (with the current distance), when the page is put in the background or the screen locks (alerts paused), when it comes back, and when tracking stops.</p>
+  <div class="tile"><div class="lbl">Distance to centre</div><div class="val" id="dist">—</div></div>
+  <div class="tile"><div class="lbl">Last fix</div><div class="val" id="last">Waiting for GPS</div></div>
+  <div class="tile"><div class="lbl">GPS accuracy</div><div class="val" id="acc">—</div></div>
+  <div class="tile"><div class="lbl">Fence</div><div class="val" id="fenceSt">—</div></div>
 </section>
 
+<div class="bar">
+  <button class="primary" id="startBtn">Start tracking</button>
+  <button id="testBtn">Test Slack</button>
+</div>
+
 <section class="band">
-  <h2>Event log</h2>
-  <ul id="log"><li class="hint">No events yet.</li></ul>
+  <details id="setup">
+    <summary>Fence &amp; Slack settings</summary>
+    <p class="hint">Tap the map to move the fence. Settings are saved on this phone only.</p>
+    <div class="grid2">
+      <div><label for="name">Fence name</label><input type="text" id="name" value="Home"></div>
+      <div><label for="person">Person on this phone</label><input type="text" id="person" placeholder="e.g. Sylvia"></div>
+    </div>
+    <label for="radius">Fence radius: <span id="rv">150</span> m</label>
+    <input type="range" id="radius" min="25" max="2000" step="25" value="150">
+    <label for="near">Nearby alert distance (km, 0 = off)</label>
+    <input type="text" id="near" inputmode="decimal" value="5">
+    <label for="hook">Slack Incoming Webhook URL</label>
+    <input type="password" id="hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off">
+    <div class="row">
+      <button id="meBtn">Fence at my spot</button>
+      <button id="simBtn">Simulate: off</button>
+      <button id="shareBtn">Copy fence link</button>
+    </div>
+    <label style="display:flex;gap:10px;align-items:center;color:inherit;margin-top:14px"><input type="checkbox" id="shareHook" style="width:22px;height:22px;accent-color:var(--blue)"> Include Slack webhook in the link (test only)</label>
+    <input type="text" id="shareOut" readonly hidden aria-label="Fence link" style="margin-top:8px">
+    <p class="hint">Simulate adds a draggable pin so you can test without walking; real GPS is ignored while it's on. A link with the webhook lets anyone post to your channel — test use only.</p>
+    <p class="hint">Slack is also told when tracking starts, pauses (screen locked or app switched), resumes and stops.</p>
+  </details>
+
+  <div class="card">
+    <h2>Event log</h2>
+    <ul id="log"><li class="hint">No events yet.</li></ul>
+  </div>
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -123,12 +153,14 @@ h2{font-size:20px;margin:8px 0 0}
   $('near').value = nearKm;
   $('hook').value = store.get('hook', '');
   $('radius').value = radius; $('rv').textContent = radius;
+  $('fenceSt').textContent = ($('name').value.trim() || 'Fence') + ' · ' + radius + ' m';
+  if (!$('hook').value) $('setup').open = true;   // first run: show settings
 
   const map = L.map('map').setView(centre, 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
-  const nearRing = L.circle(centre, { radius: nearKm * 1000, color: '#555', weight: 1.5, dashArray: '6 6', fill: false, interactive: false });
+  const nearRing = L.circle(centre, { radius: nearKm * 1000, color: '#1f56d6', weight: 1.5, dashArray: '6 6', fill: false, interactive: false });
   if (nearKm > 0) nearRing.addTo(map);
   const fence = L.circle(centre, { radius, color: '#1653c7', weight: 2, fillColor: '#1653c7', fillOpacity: .2 }).addTo(map);
   const centreMk = L.circleMarker(centre, { radius: 5, color: '#111', fillOpacity: 1 }).addTo(map);
@@ -183,6 +215,9 @@ h2{font-size:20px;margin:8px 0 0}
     $('dist').textContent = fmt(d) + ' (fence ' + radius + ' m' + (nearKm > 0 ? ', nearby ' + nearKm + ' km)' : ')');
     $('acc').textContent = acc ? '±' + Math.round(acc) + ' m' : 'simulated';
     lastFixAt = Date.now();
+    $('who').textContent = who() + (d <= radius ? ' is in ' : ' is outside ') + where();
+    $('fenceSt').textContent = where() + ' · ' + radius + ' m';
+    $('nearSt').textContent = nearKm > 0 ? (d <= nearKm * 1000 ? 'Within ' : 'Beyond ') + nearKm + ' km' : 'Off';
     if (acc && acc > MAX_ACC) { log('Ignored fix: accuracy ±' + Math.round(acc) + ' m'); return; }
 
     const mapLink = '\n<https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) + '|View location>' +
@@ -226,7 +261,7 @@ h2{font-size:20px;margin:8px 0 0}
       const first = state === 'unknown';
       state = next;
       $('state').textContent = state === 'inside' ? 'Inside' : 'Outside';
-      $('state').style.color = '#fff';
+      $('stateTile').className = 'tile hero ' + state;
       if (first || silent) { log('Starting state: ' + state); return; }
       const verb = state === 'inside' ? 'ENTERED' : 'EXITED';
       log('<b class="' + (state === 'inside' ? 'in' : 'out') + '">' + escapeHtml(who()) + ' ' + verb + '</b> ' + escapeHtml(where()));
@@ -277,7 +312,8 @@ h2{font-size:20px;margin:8px 0 0}
     watchId = navigator.geolocation.watchPosition(onFix, onErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
     pollId = setInterval(() => navigator.geolocation.getCurrentPosition(onFix, () => {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 9000 }), 10000);
     keepAwake(true);
-    $('startBtn').textContent = 'Stop tracking'; $('clock').textContent = 'Tracking…';
+    $('startBtn').textContent = 'Stop tracking'; $('startBtn').classList.add('stop');
+    $('clock').textContent = 'Live'; $('clock').classList.add('live');
     announce = true;
     log('Tracking started — Slack will be told once the first GPS fix arrives');
   }
@@ -286,7 +322,8 @@ h2{font-size:20px;margin:8px 0 0}
     if (watchId !== null && !sim) slack(':black_square_for_stop: Tracking for *' + who() + '* was stopped.');
     watchId = null; announce = false; keepAwake(false);
     clearInterval(pollId); pollId = null;
-    $('startBtn').textContent = 'Start tracking'; $('clock').textContent = 'Not tracking';
+    $('startBtn').textContent = 'Start tracking'; $('startBtn').classList.remove('stop');
+    $('clock').textContent = 'Not tracking'; $('clock').classList.remove('live');
     log('Tracking stopped');
   }
   $('startBtn').addEventListener('click', () => watchId === null ? start() : stop());
