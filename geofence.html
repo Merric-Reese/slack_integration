@@ -11,26 +11,26 @@
 /* VOICE: plain test instrument, calm and exact
    IDEA: a surveyor's field sheet — map on top, readings below
    PICTURE: the live map with the fence circle and your dot
-   COLOUR and TYPE: black/white plus mint field for the status; Space Grotesk + Inter
+   COLOUR and TYPE: blue dashboard — blue header and status tiles; Space Grotesk + Inter
    LAYOUT: map first (55vh), status band, controls, event log */
-:root{color-scheme:light dark;--bg:light-dark(#fff,#0b0b0b);--ink:light-dark(#111,#f2f2f2);--mute:light-dark(#666,#9a9a9a);--line:light-dark(#e3e3e3,#262626);--mint:#b8f5d0;--in:#0f9d58;--out:#e0452b}
+:root{color-scheme:light dark;--bg:light-dark(#f3f7fd,#08142a);--ink:light-dark(#0b1f3f,#e8f0ff);--mute:light-dark(#4a5d7c,#9fb3d4);--line:light-dark(#cfdcf0,#1d3460);--blue:#1653c7;--card:light-dark(#fff,#0f2040);--in:#18a957;--out:#ff6a4d}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 h1,h2,.big{font-family:"Space Grotesk",system-ui,sans-serif}
-header{padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+header{background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 h1{font-size:22px;margin:0}
 #map{height:55vh;min-height:300px;border-block:1px solid var(--line)}
-.status{background:var(--mint);color:#0b0b0b;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.status{background:var(--blue);color:#fff;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.status>div{background:rgba(255,255,255,.12);border-radius:10px;padding:12px}
 .big{font-size:34px;font-weight:700;line-height:1.05}
-.lbl{font-size:13px;opacity:.7}
+.lbl{font-size:13px;opacity:.85}
 .val{font-weight:600;white-space:nowrap}
 .band{padding:16px;max-width:760px}
 label{display:block;font-size:14px;color:var(--mute);margin:12px 0 4px}
-input[type=text],input[type=password]{width:100%;font-size:16px;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input[type=text],input[type=password]{width:100%;font-size:16px;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
 input[type=range]{width:100%;height:44px}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-button{font:600 16px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--ink);background:var(--bg);color:var(--ink)}
-button.primary{background:var(--ink);color:var(--bg)}
+button{font:600 16px Inter,sans-serif;min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--blue);background:var(--card);color:var(--ink)}
+button.primary{background:var(--blue);color:#fff}
 button:focus-visible,input:focus-visible{outline:3px solid var(--in);outline-offset:2px}
 .hint{font-size:14px;color:var(--mute)}
 #log{list-style:none;padding:0;margin:0}
@@ -124,7 +124,7 @@ h2{font-size:20px;margin:8px 0 0}
   }).addTo(map);
   const nearRing = L.circle(centre, { radius: nearKm * 1000, color: '#555', weight: 1.5, dashArray: '6 6', fill: false, interactive: false });
   if (nearKm > 0) nearRing.addTo(map);
-  const fence = L.circle(centre, { radius, color: '#111', weight: 2, fillColor: '#b8f5d0', fillOpacity: .35 }).addTo(map);
+  const fence = L.circle(centre, { radius, color: '#1653c7', weight: 2, fillColor: '#1653c7', fillOpacity: .2 }).addTo(map);
   const centreMk = L.circleMarker(centre, { radius: 5, color: '#111', fillOpacity: 1 }).addTo(map);
   const me = L.circleMarker(centre, { radius: 9, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1 });
   const accCircle = L.circle(centre, { radius: 0, stroke: false, fillColor: '#1a73e8', fillOpacity: .12 });
@@ -220,7 +220,7 @@ h2{font-size:20px;margin:8px 0 0}
       const first = state === 'unknown';
       state = next;
       $('state').textContent = state === 'inside' ? 'Inside' : 'Outside';
-      $('state').style.color = state === 'inside' ? 'var(--in)' : 'var(--out)';
+      $('state').style.color = '#fff';
       if (first || silent) { log('Starting state: ' + state); return; }
       const verb = state === 'inside' ? 'ENTERED' : 'EXITED';
       log('<b class="' + (state === 'inside' ? 'in' : 'out') + '">' + escapeHtml(who()) + ' ' + verb + '</b> ' + escapeHtml(where()));
