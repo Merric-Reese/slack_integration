@@ -56,6 +56,10 @@ h2{font-size:20px;margin:8px 0 0}
   <input type="text" id="name" value="Home">
   <label for="radius">Radius: <span id="rv">150</span> m</label>
   <input type="range" id="radius" min="25" max="2000" step="25" value="150">
+  <label for="person">Person on this phone (used in Slack messages)</label>
+  <input type="text" id="person" placeholder="e.g. Sylvia">
+  <label for="near">Nearby alert distance (km, 0 = off)</label>
+  <input type="text" id="near" inputmode="decimal" value="5">
   <label for="hook">Slack Incoming Webhook URL</label>
   <input type="password" id="hook" placeholder="https://hooks.slack.com/services/…" autocomplete="off">
   <div class="row">
@@ -63,8 +67,11 @@ h2{font-size:20px;margin:8px 0 0}
     <button id="testBtn">Send test message</button>
     <button id="simBtn">Simulate: off</button>
     <button id="meBtn">Fence at my spot</button>
+    <button id="shareBtn">Copy fence link</button>
   </div>
-  <p class="hint">Simulate mode adds a draggable pin so you can test entry/exit without walking. Real GPS is ignored while it's on.</p>
+  <input type="text" id="shareOut" readonly hidden aria-label="Fence link">
+  <p class="hint">Simulate mode adds a draggable pin so you can test without walking. Real GPS is ignored while it's on.</p>
+  <p class="hint">Copy fence link gives a link that loads this fence, nearby distance and person name on another phone. It never includes the Slack webhook — send that separately.</p>
 </section>
 
 <section class="band">
@@ -85,9 +92,25 @@ h2{font-size:20px;margin:8px 0 0}
 
   let centre = store.get('centre', [-38.163, 145.932]);
   let radius = store.get('radius', 150);
-  let state = 'unknown', watchId = null, sim = false, wakeLock = null, lastPos = null;
+  let nearKm = store.get('nearKm', 5);
+  let state = 'unknown', nearState = 'unknown', watchId = null, sim = false, wakeLock = null, lastPos = null;
+
+  // A shared fence link looks like #f=lat,lng,radius,nearKm,name,person
+  const m = location.hash.match(/^#f=(.+)$/);
+  if (m) {
+    const p = m[1].split(',');
+    const lat = +p[0], lng = +p[1], r = +p[2], nk = +p[3];
+    if (isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) { centre = [lat, lng]; store.set('centre', centre); }
+    if (r >= 25 && r <= 2000) { radius = r; store.set('radius', r); }
+    if (nk >= 0 && nk <= 500) { nearKm = nk; store.set('nearKm', nk); }
+    if (p[4]) store.set('name', decodeURIComponent(p[4]).slice(0, 60));
+    if (p[5]) store.set('person', decodeURIComponent(p[5]).slice(0, 60));
+    history.replaceState(null, '', location.pathname);
+  }
 
   $('name').value = store.get('name', 'Home');
+  $('person').value = store.get('person', '');
+  $('near').value = nearKm;
   $('hook').value = store.get('hook', '');
   $('radius').value = radius; $('rv').textContent = radius;
 
@@ -95,6 +118,8 @@ h2{font-size:20px;margin:8px 0 0}
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
+  const nearRing = L.circle(centre, { radius: nearKm * 1000, color: '#555', weight: 1.5, dashArray: '6 6', fill: false, interactive: false });
+  if (nearKm > 0) nearRing.addTo(map);
   const fence = L.circle(centre, { radius, color: '#111', weight: 2, fillColor: '#b8f5d0', fillOpacity: .35 }).addTo(map);
   const centreMk = L.circleMarker(centre, { radius: 5, color: '#111', fillOpacity: 1 }).addTo(map);
   const me = L.circleMarker(centre, { radius: 9, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1 });
@@ -103,9 +128,9 @@ h2{font-size:20px;margin:8px 0 0}
 
   function setCentre(ll){
     centre = [ll.lat ?? ll[0], ll.lng ?? ll[1]];
-    fence.setLatLng(centre); centreMk.setLatLng(centre);
+    fence.setLatLng(centre); centreMk.setLatLng(centre); nearRing.setLatLng(centre);
     store.set('centre', centre);
-    state = 'unknown';                     // re-evaluate against the new fence without alerting
+    state = 'unknown'; nearState = 'unknown';   // re-evaluate against the new fence without alerting
     if (lastPos) evaluate(lastPos.lat, lastPos.lng, lastPos.acc, true);
   }
   map.on('click', e => setCentre(e.latlng));
@@ -115,7 +140,22 @@ h2{font-size:20px;margin:8px 0 0}
     fence.setRadius(radius); store.set('radius', radius);
   });
   $('name').addEventListener('change', e => store.set('name', e.target.value.trim() || 'Fence'));
+  $('person').addEventListener('change', e => store.set('person', e.target.value.trim()));
   $('hook').addEventListener('change', e => store.set('hook', e.target.value.trim()));
+  $('near').addEventListener('change', e => {
+    const v = parseFloat(e.target.value);
+    nearKm = isFinite(v) && v > 0 ? Math.min(v, 500) : 0;
+    e.target.value = nearKm;
+    store.set('nearKm', nearKm);
+    nearRing.setRadius(nearKm * 1000);
+    if (nearKm > 0) nearRing.addTo(map); else map.removeLayer(nearRing);
+    nearState = 'unknown';
+    if (lastPos) evaluate(lastPos.lat, lastPos.lng, lastPos.acc, true);
+  });
+
+  const fmt = m => m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + ' km' : Math.round(m) + ' m';
+  const who = () => $('person').value.trim() || 'Phone';
+  const where = () => $('name').value.trim() || 'Fence';
 
   // Great-circle distance in metres (haversine)
   function distance(a, b, c, d){
@@ -130,10 +170,33 @@ h2{font-size:20px;margin:8px 0 0}
     me.setLatLng([lat, lng]).addTo(map);
     accCircle.setLatLng([lat, lng]).setRadius(acc || 0).addTo(map);
     const d = distance(centre[0], centre[1], lat, lng);
-    $('dist').textContent = Math.round(d) + ' m (edge at ' + radius + ' m)';
+    $('dist').textContent = fmt(d) + ' (fence ' + radius + ' m' + (nearKm > 0 ? ', nearby ' + nearKm + ' km)' : ')');
     $('acc').textContent = acc ? '±' + Math.round(acc) + ' m' : 'simulated';
     $('last').textContent = new Date().toLocaleTimeString();
     if (acc && acc > MAX_ACC) { log('Ignored fix: accuracy ±' + Math.round(acc) + ' m'); return; }
+
+    const mapLink = '\n<https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) + '|View location>' +
+                    (acc ? ' (±' + Math.round(acc) + ' m)' : ' (simulated)');
+
+    // Outer "nearby" ring: alert once when coming within nearKm, once when going back beyond it
+    if (nearKm > 0) {
+      const nearM = nearKm * 1000, nearHyst = Math.max(100, nearM * 0.02);
+      let nn = nearState;
+      if (d <= nearM) nn = 'near';
+      else if (d > nearM + nearHyst) nn = 'far';
+      else if (nearState === 'unknown') nn = 'far';
+      if (nn !== nearState) {
+        const firstNear = nearState === 'unknown';
+        nearState = nn;
+        if (firstNear || silent) log('Starting nearby state: ' + (nn === 'near' ? 'within ' : 'beyond ') + nearKm + ' km');
+        else {
+          const msg = nn === 'near' ? 'is within ' + nearKm + ' km of' : 'is now more than ' + nearKm + ' km from';
+          log('<b class="' + (nn === 'near' ? 'in' : 'out') + '">' + escapeHtml(who() + ' ' + msg + ' ' + where()) + '</b>');
+          slack(':large_blue_circle: *' + who() + '* ' + msg + ' *' + where() + '* (' + fmt(d) + ' away) at ' +
+                new Date().toLocaleString() + mapLink);
+        }
+      }
+    }
 
     let next = state;
     if (d <= radius) next = 'inside';
@@ -147,11 +210,8 @@ h2{font-size:20px;margin:8px 0 0}
       $('state').style.color = state === 'inside' ? 'var(--in)' : 'var(--out)';
       if (first || silent) { log('Starting state: ' + state); return; }
       const verb = state === 'inside' ? 'ENTERED' : 'EXITED';
-      const name = $('name').value.trim() || 'Fence';
-      log('<b class="' + (state === 'inside' ? 'in' : 'out') + '">' + verb + '</b> ' + escapeHtml(name));
-      slack(':round_pushpin: ' + verb + ' *' + name + '* at ' + new Date().toLocaleString() +
-            '\n<https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) + '|View location>' +
-            (acc ? ' (±' + Math.round(acc) + ' m)' : ' (simulated)'));
+      log('<b class="' + (state === 'inside' ? 'in' : 'out') + '">' + escapeHtml(who()) + ' ' + verb + '</b> ' + escapeHtml(where()));
+      slack(':round_pushpin: *' + who() + '* ' + verb + ' *' + where() + '* at ' + new Date().toLocaleString() + mapLink);
     }
   }
 
@@ -200,17 +260,17 @@ h2{font-size:20px;margin:8px 0 0}
   }
   $('startBtn').addEventListener('click', () => watchId === null ? start() : stop());
 
-  $('testBtn').addEventListener('click', () => slack(':white_check_mark: Geofence Tester: test message from ' + ($('name').value.trim() || 'Fence')));
+  $('testBtn').addEventListener('click', () => slack(':white_check_mark: Geofence Tester: test message from *' + who() + '* (fence: ' + where() + ')'));
 
   $('simBtn').addEventListener('click', () => {
     sim = !sim;
     $('simBtn').textContent = 'Simulate: ' + (sim ? 'on' : 'off');
     if (sim) {
       simPin.setLatLng([centre[0], centre[1] + (radius * 2.5) / 111320 / Math.cos(centre[0] * Math.PI / 180)]).addTo(map);
-      state = 'unknown';
+      state = 'unknown'; nearState = 'unknown';
       const ll = simPin.getLatLng(); evaluate(ll.lat, ll.lng, 0, true);
       log('Simulate on — drag the pin across the fence edge');
-    } else { map.removeLayer(simPin); state = 'unknown'; log('Simulate off'); }
+    } else { map.removeLayer(simPin); state = 'unknown'; nearState = 'unknown'; log('Simulate off'); }
   });
   simPin.on('drag', e => { const ll = e.target.getLatLng(); evaluate(ll.lat, ll.lng, 0); });
 
@@ -221,6 +281,19 @@ h2{font-size:20px;margin:8px 0 0}
       e => log('GPS error: ' + escapeHtml(e.message)),
       { enableHighAccuracy: true, timeout: 20000 }
     );
+  });
+
+  $('shareBtn').addEventListener('click', () => {
+    const link = location.origin + location.pathname + '#f=' +
+      [centre[0].toFixed(6), centre[1].toFixed(6), radius, nearKm,
+       encodeURIComponent(where()), encodeURIComponent($('person').value.trim())].join(',');
+    const out = $('shareOut');
+    out.value = link; out.hidden = false; out.select();
+    try {
+      navigator.clipboard.writeText(link)
+        .then(() => log('Fence link copied — send it to the other phone'))
+        .catch(() => log('Copy blocked — select the link shown and copy it'));
+    } catch { log('Copy blocked — select the link shown and copy it'); }
   });
 }
 </script>
