@@ -69,9 +69,11 @@ h2{font-size:20px;margin:8px 0 0}
     <button id="meBtn">Fence at my spot</button>
     <button id="shareBtn">Copy fence link</button>
   </div>
+  <label style="display:flex;gap:8px;align-items:center;color:inherit"><input type="checkbox" id="shareHook" style="width:22px;height:22px"> Include Slack webhook in the link (test only)</label>
   <input type="text" id="shareOut" readonly hidden aria-label="Fence link">
   <p class="hint">Simulate mode adds a draggable pin so you can test without walking. Real GPS is ignored while it's on.</p>
-  <p class="hint">Copy fence link gives a link that loads this fence, nearby distance and person name on another phone. It never includes the Slack webhook — send that separately.</p>
+  <p class="hint">Copy fence link gives a link that loads this fence, nearby distance and person name on another phone. The Slack webhook is only included if you tick the box — anyone with that link can post to your channel, so only use it for testing.</p>
+  <p class="hint">While tracking, Slack also gets a message when tracking starts (with the current distance), when the page is put in the background or the screen locks (alerts paused), when it comes back, and when tracking stops.</p>
 </section>
 
 <section class="band">
@@ -93,6 +95,7 @@ h2{font-size:20px;margin:8px 0 0}
   let centre = store.get('centre', [-38.163, 145.932]);
   let radius = store.get('radius', 150);
   let nearKm = store.get('nearKm', 5);
+  let announce = false;
   let state = 'unknown', nearState = 'unknown', watchId = null, sim = false, wakeLock = null, lastPos = null;
 
   // A shared fence link looks like #f=lat,lng,radius,nearKm,name,person
@@ -105,6 +108,7 @@ h2{font-size:20px;margin:8px 0 0}
     if (nk >= 0 && nk <= 500) { nearKm = nk; store.set('nearKm', nk); }
     if (p[4]) store.set('name', decodeURIComponent(p[4]).slice(0, 60));
     if (p[5]) store.set('person', decodeURIComponent(p[5]).slice(0, 60));
+    if (p[6]) { const h = decodeURIComponent(p[6]); if (/^https:\/\/hooks\.slack\.com\//.test(h)) store.set('hook', h); }
     history.replaceState(null, '', location.pathname);
   }
 
@@ -178,6 +182,15 @@ h2{font-size:20px;margin:8px 0 0}
     const mapLink = '\n<https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) + '|View location>' +
                     (acc ? ' (±' + Math.round(acc) + ' m)' : ' (simulated)');
 
+    // First good fix after Start: tell Slack tracking is live and where things stand
+    if (announce) {
+      announce = false;
+      const zone = d <= radius ? 'inside ' + where()
+        : nearKm > 0 && d <= nearKm * 1000 ? 'within ' + nearKm + ' km of ' + where()
+        : (nearKm > 0 ? 'more than ' + nearKm + ' km' : fmt(d)) + ' from ' + where();
+      slack(':satellite: Tracking is live for *' + who() + '* — currently ' + zone + ' (' + fmt(d) + ' from the centre).' + mapLink);
+    }
+
     // Outer "nearby" ring: alert once when coming within nearKm, once when going back beyond it
     if (nearKm > 0) {
       const nearM = nearKm * 1000, nearHyst = Math.max(100, nearM * 0.02);
@@ -215,12 +228,12 @@ h2{font-size:20px;margin:8px 0 0}
     }
   }
 
-  function slack(text){
+  function slack(text, keepalive){
     const url = $('hook').value.trim();
     if (!/^https:\/\/hooks\.slack\.com\//.test(url)) { log('Slack not sent: webhook URL missing or not hooks.slack.com'); return; }
     // text/plain body + no-cors = "simple" request, so the browser sends it without a CORS preflight.
     // The response is opaque, so the page can't confirm delivery — check the Slack channel.
-    fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ text }) })
+    fetch(url, { method: 'POST', mode: 'no-cors', keepalive: !!keepalive, body: JSON.stringify({ text }) })
       .then(() => log('Slack request sent — check the channel'))
       .catch(err => log('Slack send failed: ' + escapeHtml(err.message)));
   }
@@ -238,7 +251,16 @@ h2{font-size:20px;margin:8px 0 0}
       else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
     } catch { /* not supported — screen may sleep and pause tracking */ }
   }
-  document.addEventListener('visibilitychange', () => { if (watchId !== null && document.visibilityState === 'visible') keepAwake(true); });
+  // Tell Slack when the page stops being able to track (backgrounded / screen locked) and when it's back
+  document.addEventListener('visibilitychange', () => {
+    if (watchId === null || sim) return;
+    if (document.visibilityState === 'hidden') {
+      slack(':double_vertical_bar: Tracking for *' + who() + '* is paused — the page was closed, switched away from, or the screen locked. No alerts until it is reopened.', true);
+    } else {
+      keepAwake(true);
+      slack(':arrow_forward: Tracking for *' + who() + '* resumed.');
+    }
+  });
 
   function start(){
     if (!('geolocation' in navigator)) { log('This browser has no geolocation'); return; }
@@ -250,11 +272,13 @@ h2{font-size:20px;margin:8px 0 0}
     );
     keepAwake(true);
     $('startBtn').textContent = 'Stop tracking'; $('clock').textContent = 'Tracking…';
-    log('Tracking started');
+    announce = true;
+    log('Tracking started — Slack will be told once the first GPS fix arrives');
   }
   function stop(){
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-    watchId = null; keepAwake(false);
+    if (watchId !== null && !sim) slack(':black_square_for_stop: Tracking for *' + who() + '* was stopped.');
+    watchId = null; announce = false; keepAwake(false);
     $('startBtn').textContent = 'Start tracking'; $('clock').textContent = 'Not tracking';
     log('Tracking stopped');
   }
@@ -286,7 +310,8 @@ h2{font-size:20px;margin:8px 0 0}
   $('shareBtn').addEventListener('click', () => {
     const link = location.origin + location.pathname + '#f=' +
       [centre[0].toFixed(6), centre[1].toFixed(6), radius, nearKm,
-       encodeURIComponent(where()), encodeURIComponent($('person').value.trim())].join(',');
+       encodeURIComponent(where()), encodeURIComponent($('person').value.trim())]
+       .concat($('shareHook').checked && $('hook').value.trim() ? [encodeURIComponent($('hook').value.trim())] : []).join(',');
     const out = $('shareOut');
     out.value = link; out.hidden = false; out.select();
     try {
