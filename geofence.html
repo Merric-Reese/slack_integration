@@ -95,7 +95,13 @@ h2{font-size:20px;margin:8px 0 0}
   let centre = store.get('centre', [-38.163, 145.932]);
   let radius = store.get('radius', 150);
   let nearKm = store.get('nearKm', 5);
-  let announce = false;
+  let announce = false, lastFixAt = 0, pollId = null;
+  // Show how old the last GPS fix is, ticking every second
+  setInterval(() => {
+    if (!lastFixAt) return;
+    const s = Math.round((Date.now() - lastFixAt) / 1000);
+    $('last').textContent = new Date(lastFixAt).toLocaleTimeString() + ' (' + (s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + (s % 60) + 's') + ' ago)';
+  }, 1000);
   let state = 'unknown', nearState = 'unknown', watchId = null, sim = false, wakeLock = null, lastPos = null;
 
   // A shared fence link looks like #f=lat,lng,radius,nearKm,name,person
@@ -176,7 +182,7 @@ h2{font-size:20px;margin:8px 0 0}
     const d = distance(centre[0], centre[1], lat, lng);
     $('dist').textContent = fmt(d) + ' (fence ' + radius + ' m' + (nearKm > 0 ? ', nearby ' + nearKm + ' km)' : ')');
     $('acc').textContent = acc ? '±' + Math.round(acc) + ' m' : 'simulated';
-    $('last').textContent = new Date().toLocaleTimeString();
+    lastFixAt = Date.now();
     if (acc && acc > MAX_ACC) { log('Ignored fix: accuracy ±' + Math.round(acc) + ' m'); return; }
 
     const mapLink = '\n<https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6) + '|View location>' +
@@ -265,11 +271,11 @@ h2{font-size:20px;margin:8px 0 0}
   function start(){
     if (!('geolocation' in navigator)) { log('This browser has no geolocation'); return; }
     if (!window.isSecureContext) { log('Location needs HTTPS (or localhost). Open this page from an https:// address.'); return; }
-    watchId = navigator.geolocation.watchPosition(
-      p => { if (!sim) evaluate(p.coords.latitude, p.coords.longitude, p.coords.accuracy); },
-      e => log('GPS error: ' + escapeHtml(e.message)),
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
-    );
+    const onFix = p => { if (!sim) evaluate(p.coords.latitude, p.coords.longitude, p.coords.accuracy); };
+    const onErr = e => log('GPS error: ' + escapeHtml(e.message));
+    // watchPosition only fires when iOS thinks you've moved, so also ask for a fresh fix every 10 s
+    watchId = navigator.geolocation.watchPosition(onFix, onErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    pollId = setInterval(() => navigator.geolocation.getCurrentPosition(onFix, () => {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 9000 }), 10000);
     keepAwake(true);
     $('startBtn').textContent = 'Stop tracking'; $('clock').textContent = 'Tracking…';
     announce = true;
@@ -279,6 +285,7 @@ h2{font-size:20px;margin:8px 0 0}
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     if (watchId !== null && !sim) slack(':black_square_for_stop: Tracking for *' + who() + '* was stopped.');
     watchId = null; announce = false; keepAwake(false);
+    clearInterval(pollId); pollId = null;
     $('startBtn').textContent = 'Start tracking'; $('clock').textContent = 'Not tracking';
     log('Tracking stopped');
   }
